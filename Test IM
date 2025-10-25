@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>International Management — Exam Practice (Large Bank)</title>
+<style>
+  :root{--bg:#f4f6f8;--card:#ffffff;--muted:#6b7280;--accent:#0b3d91;--ok:#14684a;--bad:#a6212a}
+  body{margin:0;font-family:Georgia, "Times New Roman", serif;background:var(--bg);color:#111}
+  .container{max-width:920px;margin:34px auto;padding:28px;background:var(--card);box-shadow:0 8px 30px rgba(12,20,40,.06);border-radius:10px}
+  header{display:flex;align-items:center;justify-content:space-between}
+  h1{font-size:20px;margin:0;font-family:Georgia, "Times New Roman", serif}
+  .meta{color:var(--muted);font-size:13px}
+  .topbar{display:flex;gap:12px;align-items:center}
+  .timer{font-weight:700;color:var(--accent);background:#eef4ff;padding:8px 12px;border-radius:8px;border:1px solid rgba(11,61,145,.06)}
+  .progress{color:var(--muted);font-size:13px}
+  .question-card{margin-top:20px;padding:20px;border-radius:8px;border:1px solid #e6e9ef;background:#fcfdff}
+  .qtext{font-weight:600;margin-bottom:12px;font-size:16px}
+  .choices{list-style:none;padding:0;margin:0}
+  .choice{margin:8px 0}
+  .choice button{width:100%;text-align:left;padding:12px 14px;border-radius:6px;border:1px solid #e6e9ef;background:#fff;cursor:pointer;font-size:15px}
+  .choice button:hover{transform:translateY(-1px)}
+  .choice button.selected{background:#f0f6ff;border-color:var(--accent)}
+  .controls{display:flex;gap:10px;align-items:center;margin-top:14px}
+  .btn{padding:10px 14px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-weight:600}
+  .btn.secondary{background:#e9eefb;color:var(--accent);border:1px solid rgba(11,61,145,.08)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .explanation{margin-top:14px;padding:12px;background:#fbfcff;border-radius:6px;border-left:4px solid #e6eefc;color:#12325a}
+  .small{font-size:13px;color:var(--muted)}
+  footer{margin-top:18px;color:var(--muted);font-size:13px}
+  .result{padding:18px;border-radius:8px;background:#f7fafc;border:1px solid #e8eef6}
+  .score{font-size:22px;font-weight:700;color:var(--accent)}
+  .pass{color:var(--ok);font-weight:700}
+  .fail{color:var(--bad);font-weight:700}
+  @media (max-width:600px){.topbar{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+  <div class="container" id="app">
+    <header>
+      <div>
+        <h1>International Management — Timed Exam (Practice)</h1>
+        <div class="meta">Source: the provided PDF (International Management). <span class="small">Random 15 questions from a large bank — 2 points each — 30 minutes.</span></div>
+      </div>
+      <div class="topbar">
+        <div class="progress" id="progress">Question 1 / 15</div>
+        <div class="timer" id="timer">30:00</div>
+      </div>
+    </header>
+
+    <main id="quiz-area" aria-live="polite">
+      <!-- Injected content -->
+    </main>
+
+    <footer>
+      <div class="small">Rules: Single-mode exam. No return to previous questions. Immediate feedback after each question with explanation and source citation from your PDF. Passing: 18/30.</div>
+    </footer>
+  </div>
+
+<script>
+/* ============================
+   Large question bank (drawn from the uploaded PDF).
+   The app will randomly select 15 distinct questions each run,
+   randomize choice order, and present them in sequence.
+   Each question is worth 2 points. Passing = 18.
+   Explanations cite the uploaded PDF (internal file citations).
+   ============================ */
+
+/* ====== QUESTION BANK ======
+   NOTE: This bank is intentionally large to provide varied practice.
+   Explanations include file citations that point to the PDF you uploaded.
+   You can expand the bank further by editing the array below.
+*/
+const QUESTION_BANK = [
+  {id:1, q:"Which statement best defines 'International Business' according to the book?",
+   choices:[
+    "Business limited to domestic markets.",
+    "Activities involving two or more countries and movement of resources across national boundaries.",
+    "Only export/import transactions.",
+    "Financial transactions within a company only."
+   ],
+   correct:1,
+   explanation:"Defined as activities involving two or more countries and movement of resources (capital, people, technology) across borders.  [oai_citation:0‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:2, q:"What major institution replaced GATT in 1995, introducing a binding dispute-resolution system?",
+   choices:[
+     "WTO (World Trade Organization)",
+     "IMF",
+     "World Bank",
+     "OECD"
+   ],
+   correct:0,
+   explanation:"WTO replaced GATT in 1995 and has a formal dispute settlement mechanism. "
+  },
+
+  {id:3, q:"What is 'trade creation' in the context of economic integration?",
+   choices:[
+     "Replacement of inefficient domestic production by more efficient production within the union.",
+     "Increase in tariffs to protect domestic producers.",
+     "Decrease in intra-bloc trade volumes.",
+     "Export subsidies targeted at non-member countries."
+   ],
+   correct:0,
+   explanation:"Trade creation occurs when integration allows more efficient producers within a union to replace less efficient domestic production.  [oai_citation:1‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:4, q:"Which five dimensions are part of Hofstede's framework discussed in the book?",
+   choices:[
+     "Power distance; Individualism vs Collectivism; Uncertainty avoidance; Masculinity vs Femininity; Long-term vs Short-term orientation",
+     "High/low context; Formal/informal; Speed vs patience; Masculinity; Religiousness",
+     "Power distance; GDP per capita; Language; Education; Legal system",
+     "Collectivism; Nationalism; Trade openness; Currency regime; Political system"
+   ],
+   correct:0,
+   explanation:"Hofstede's five dimensions include power distance, individualism/collectivism, uncertainty avoidance, masculinity/femininity and time orientation. "
+  },
+
+  {id:5, q:"Perlmutter described several managerial mindsets. Which term indicates a belief that home-country ways are superior?",
+   choices:[
+     "Polycentrism",
+     "Ethnocentrism",
+     "Geocentrism",
+     "Regiocentrism"
+   ],
+   correct:1,
+   explanation:"Ethnocentrism considers home-country practices superior, favouring centralisation and standardisation.  [oai_citation:2‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:6, q:"Which payment type is an explicit exception under the FCPA, as explained in the book?",
+   choices:[
+     "Facilitating payments for routine governmental actions",
+     "Payments to change legislation",
+     "Payments to obtain monopoly privileges",
+     "Large gifts to senior politicians to secure contracts"
+   ],
+   correct:0,
+   explanation:"The FCPA prohibits bribery but allows 'facilitating payments' for routine actions like permit processing. "
+  },
+
+  {id:7, q:"Which motive for international expansion focuses primarily on lowering production costs?",
+   choices:[
+     "Market-seeking motive",
+     "Cost-reduction motive",
+     "Strategic asset-seeking motive",
+     "Political motive"
+   ],
+   correct:1,
+   explanation:"Cost-reduction motive aims to lower factor costs (e.g., labour) by locating activities abroad.  [oai_citation:3‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:8, q:"A 'multidomestic' strategy is characterized by:",
+   choices:[
+     "Standardized global products and central control",
+     "Customization and significant autonomy for local subsidiaries",
+     "No international activity",
+     "Single global brand with identical marketing everywhere"
+   ],
+   correct:1,
+   explanation:"Multidomestic firms adapt products and strategies to each local market and grant autonomy to subsidiaries.  [oai_citation:4‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:9, q:"Which of the following is cited as a key source of competitive advantage for multinational firms?",
+   choices:[
+     "National differences, scale economies, and scope economies",
+     "Only domestic subsidies",
+     "Import tariffs",
+     "Local partnerships exclusively"
+   ],
+   correct:0,
+   explanation:"Competitive advantage stems from national differences, scale economies and scope economies.  [oai_citation:5‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:10, q:"Trompenaars' cultural dimensions include which of the following pairs?",
+   choices:[
+     "Universalism vs Particularism; Specific vs Diffuse",
+     "Power distance vs Uncertainty avoidance",
+     "Trade creation vs Trade diversion",
+     "Long-term vs Short-term only"
+   ],
+   correct:0,
+   explanation:"Trompenaars' model includes universalism vs particularism and specific vs diffuse relationships.  [oai_citation:6‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:11, q:"What does 'geocentrism' mean in international staffing and strategy?",
+   choices:[
+     "Hiring only home-country nationals for leadership roles",
+     "An integrated, world-oriented approach mixing home and host country perspectives",
+     "Avoiding global coordination",
+     "Outsourcing all leadership to third-country nationals"
+   ],
+   correct:1,
+   explanation:"Geocentrism emphasizes a world-oriented perspective, interdependence and mixed staffing.  [oai_citation:7‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:12, q:"Which of the following is NOT an element of culture discussed as influential to business?",
+   choices:[
+     "Language",
+     "Religion",
+     "Non-verbal communication",
+     "Specific national GDP growth rate"
+   ],
+   correct:3,
+   explanation:"Elements include language, religion and non-verbal cues; GDP growth rate is not an element of culture.  [oai_citation:8‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:13, q:"Viner's analysis of customs unions emphasized which pair of effects?",
+   choices:[
+     "Trade creation and trade diversion",
+     "Nationalization and privatization",
+     "Inflation and deflation",
+     "Tariff increases and quota elimination"
+   ],
+   correct:0,
+   explanation:"Viner described trade creation and trade diversion as primary effects of customs unions.  [oai_citation:9‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:14, q:"Which entry decision should be taken first according to the strategic planning process presented?",
+   choices:[
+     "Identify the firm's objectives for foreign market entry",
+     "Build a local plant immediately",
+     "Hire local sales staff before research",
+     "Set local pricing arbitrarily"
+   ],
+   correct:0,
+   explanation:"The first step is to clarify corporate objectives for entering the foreign market.  [oai_citation:10‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:15, q:"Political 'micro-risk' is best described as:",
+   choices:[
+     "Risks affecting the entire country (e.g., currency collapse)",
+     "Risks aimed at a single firm (e.g., targeted expropriation or regulation)",
+     "Natural disaster risk",
+     "Global economic downturns"
+   ],
+   correct:1,
+   explanation:"Micro-risk targets specific companies (e.g., discriminatory taxes or expropriation of a firm).  [oai_citation:11‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:16, q:"What is the difference between 'trade diversion' and 'trade creation'?",
+   choices:[
+     "Trade diversion shifts imports from more efficient world suppliers to less efficient partners; trade creation replaces inefficient domestic production with more efficient member production.",
+     "They are identical concepts.",
+     "Trade creation causes tariffs to rise; trade diversion causes them to fall.",
+     "Trade creation refers to services only."
+   ],
+   correct:0,
+   explanation:"Trade diversion shifts purchases from efficient world suppliers to less-efficient members due to preferential treatment; trade creation replaces inefficient domestic production with efficient member production.  [oai_citation:12‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:17, q:"Which corporate strategy emphasizes central control and worldwide standardization?",
+   choices:[
+     "Multidomestic strategy",
+     "Global/standardization strategy",
+     "International licensing only",
+     "Local-only strategy"
+   ],
+   correct:1,
+   explanation:"A global/standardization strategy emphasizes centralized control and uniform products worldwide.  [oai_citation:13‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:18, q:"Which factor is most relevant when assessing cultural distance?",
+   choices:[
+     "Differences in legal codes only",
+     "Differences in language, values, norms and business practices",
+     "Differences in GDP",
+     "Differences in climate"
+   ],
+   correct:1,
+   explanation:"Cultural distance relates to differences in language, values and norms that affect business interactions.  [oai_citation:14‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:19, q:"Which of the following best describes 'scale economies' as a source of advantage?",
+   choices:[
+     "Cost advantages arising from increased production volume",
+     "Advantage from having many managers",
+     "Advantage from stricter regulation",
+     "Only advantages in service industries"
+   ],
+   correct:0,
+   explanation:"Scale economies are cost benefits from producing at larger volume.  [oai_citation:15‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:20, q:"Which is an objective commonly listed for foreign market entry?",
+   choices:[
+     "Market expansion, resource access, efficiency gains, strategic asset acquisition",
+     "Only tax evasion",
+     "Complete avoidance of local laws",
+     "Mandatory relocation of HQ"
+   ],
+   correct:0,
+   explanation:"Common objectives include market access, resource access, efficiency and strategic asset acquisition.  [oai_citation:16‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:21, q:"Which of these is a common control mechanism used by MNE headquarters over subsidiaries?",
+   choices:[
+     "Cultural assimilation programs",
+     "Performance monitoring, budgeting and centralized policies",
+     "Complete lack of reporting",
+     "Random weekly audits only"
+   ],
+   correct:1,
+   explanation:"Headquarters employ monitoring, budgets and policies to control subsidiaries.  [oai_citation:17‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:22, q:"What is meant by 'liability of foreignness'?",
+   choices:[
+     "The legal obligation to pay tariffs",
+     "Competitive disadvantages foreign firms face relative to local firms due to unfamiliarity, discrimination or costs",
+     "A liability account in accounting",
+     "Only the tax burden for imports"
+   ],
+   correct:1,
+   explanation:"Liability of foreignness refers to disadvantages foreign firms face (lack of local knowledge, discrimination, extra costs).  [oai_citation:18‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:23, q:"Which governance mode transfers less control but lower risk to the firm?",
+   choices:[
+     "Wholly owned subsidiary",
+     "Exporting and licensing",
+     "Greenfield acquisition",
+     "Merging with host-government"
+   ],
+   correct:1,
+   explanation:"Exporting and licensing involve less control but also lower direct investment risk than wholly owned subsidiaries.  [oai_citation:19‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:24, q:"Which term describes the firm's attempt to align its products and marketing to the host country's cultural preferences?",
+   choices:[
+     "Standardization",
+     "Adaptation/localization",
+     "Global homogenization",
+     "Centralization"
+   ],
+   correct:1,
+   explanation:"Adaptation/localization tailors products and marketing to local cultural preferences.  [oai_citation:20‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:25, q:"Which organizational structure facilitates global integration and local responsiveness via product divisions with worldwide responsibilities?",
+   choices:[
+     "Geographic structure only",
+     "Global product division structure",
+     "Purely functional domestic structure",
+     "No formal structure"
+   ],
+   correct:1,
+   explanation:"Global product division structures give product divisions worldwide responsibilities, promoting integration by product.  [oai_citation:21‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:26, q:"Which of the following describes 'uncertainty avoidance' (Hofstede)?",
+   choices:[
+     "Comfort with ambiguity and change",
+     "Preference for clear rules and reduced uncertainty",
+     "Preference for high noise levels",
+     "Only economic policy choice"
+   ],
+   correct:1,
+   explanation:"Uncertainty avoidance is a cultural preference for clear rules and predictability.  [oai_citation:22‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:27, q:"Which instrument is commonly used by governments to protect infant industries?",
+   choices:[
+     "Tariffs and quotas",
+     "Currency convertibility",
+     "Free movement of people",
+     "Open trade policy only"
+   ],
+   correct:0,
+   explanation:"Tariffs and quotas are common protection instruments for infant industries.  [oai_citation:23‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:28, q:"Which of these is an advantage of forming strategic alliances?",
+   choices:[
+     "Sharing costs and risks, accessing local knowledge and distribution",
+     "Complete transfer of ownership to the partner",
+     "Avoiding competition law",
+     "Guaranteed market monopoly"
+   ],
+   correct:0,
+   explanation:"Alliances allow partners to share costs/risks and gain local capabilities.  [oai_citation:24‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:29, q:"What role does 'culture' play in international negotiations per the book?",
+   choices:[
+     "No role — business is universal",
+     "Shapes communication styles, trust-building and decision-making processes",
+     "Only affects dress code",
+     "Only determines price"
+   ],
+   correct:1,
+   explanation:"Culture influences communication, trust and negotiation styles significantly.  [oai_citation:25‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:30, q:"Which of the following is a managerial implication of high power distance cultures?",
+   choices:[
+     "Expectation of egalitarian decision-making",
+     "Acceptance of hierarchical authority and centralized decision-making",
+     "Complete resistance to any authority",
+     "Uniform preference for team-based decisions"
+   ],
+   correct:1,
+   explanation:"High power distance cultures accept hierarchical authority and centralized decisions.  [oai_citation:26‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:31, q:"Which practice reduces political risk when entering an unstable country?",
+   choices:[
+     "Ignoring local regulations",
+     "Obtaining political risk insurance, joint ventures with local partners, and close government relations",
+     "Single large investment without due diligence",
+     "Hiring only expatriates"
+   ],
+   correct:1,
+   explanation:"Risk mitigation includes insurance, local partnerships and building government relations.  [oai_citation:27‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:32, q:"Which of the following is a common measure of economic integration?",
+   choices:[
+     "GNP growth alone",
+     "Trade flows between countries, common tariff policies, and regulatory alignment",
+     "Only language similarity",
+     "Only physical distance"
+   ],
+   correct:1,
+   explanation:"Economic integration is measured via trade flows, common tariffs and regulatory convergence.  [oai_citation:28‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:33, q:"Which factor is crucial when choosing between greenfield investment and acquisition?",
+   choices:[
+     "Availability of suitable acquisition targets, speed to market and need for control",
+     "The colour of the local flag",
+     "Only local weather conditions",
+     "Parent company's CEO preference only"
+   ],
+   correct:0,
+   explanation:"Choice depends on target availability, speed and strategic control needs.  [oai_citation:29‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:34, q:"What is 'polycentrism' in international management?",
+   choices:[
+     "Belief that only home-country knows best",
+     "Orientation where host-country practices are accepted and subsidiaries have autonomy",
+     "A global hiring freeze",
+     "A trade policy tool"
+   ],
+   correct:1,
+   explanation:"Polycentrism endorses adaptation to host-country practices and gives subsidiary autonomy.  [oai_citation:30‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:35, q:"Which is a typical symptom of a country with high uncertainty avoidance?",
+   choices:[
+     "Flexible labor laws and high tolerance of ambiguity",
+     "Extensive regulations, formal procedures and risk aversion",
+     "Complete absence of laws",
+     "Preference for rapid innovation at any cost"
+   ],
+   correct:1,
+   explanation:"High uncertainty avoidance correlates with many rules, formal procedures and risk aversion.  [oai_citation:31‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:36, q:"Which of these is an example of a non-tariff barrier?",
+   choices:[
+     "Import quotas, technical standards, and licensing requirements",
+     "A simple tariff",
+     "A free trade agreement",
+     "Domestic cultural festivals"
+   ],
+   correct:0,
+   explanation:"Non-tariff barriers include quotas, standards and licensing.  [oai_citation:32‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:37, q:"What does 'scope economies' mean?",
+   choices:[
+     "Cost advantages from producing a wider range of products using shared capabilities",
+     "Only advantages from producing a single product",
+     "Losses due to diversification",
+     "A marketing term with no operational meaning"
+   ],
+   correct:0,
+   explanation:"Scope economies arise when producing multiple products shares resources and lowers average costs.  [oai_citation:33‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:38, q:"Which of the following best describes a 'regiocentric' orientation?",
+   choices:[
+     "Focusing exclusively on home country",
+     "Organizing operations around regional markets with some regional integration",
+     "Complete abandoning of regional considerations",
+     "Identical to ethno-centrism"
+   ],
+   correct:1,
+   explanation:"Regiocentrism organizes strategies around regions, balancing local and global considerations.  [oai_citation:34‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:39, q:"Which of these is an advantage of standardizing products globally?",
+   choices:[
+     "Lower per-unit costs through standardization and greater brand consistency",
+     "Complete elimination of local tastes",
+     "Guaranteed success in every market",
+     "No need for market research"
+   ],
+   correct:0,
+   explanation:"Standardization can lower costs and build global brand consistency.  [oai_citation:35‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:40, q:"Which negotiation style is more typical in high-context cultures?",
+   choices:[
+     "Direct, explicit communication with focus on tasks",
+     "Indirect communication, reliance on context, long-term relationships and harmony",
+     "Only legal contracts decide outcomes",
+     "Purely price-driven bargaining"
+   ],
+   correct:1,
+   explanation:"High-context cultures favor indirect communication and long-term relationships in negotiations.  [oai_citation:36‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:41, q:"Which corporate response is typical when facing serious ethical/legal differences across countries?",
+   choices:[
+     "Complying with strictest applicable standards; implementing global compliance programs",
+     "Ignoring local laws",
+     "Bribing local officials to avoid compliance",
+     "Doing nothing"
+   ],
+   correct:0,
+   explanation:"Firms often adopt global compliance standards and policies to handle ethical/legal differences.  [oai_citation:37‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:42, q:"Which measurement helps evaluate cultural fit of a proposed expatriate?",
+   choices:[
+     "Language ability, cultural empathy and prior international experience",
+     "Only academic grades",
+     "Height and weight",
+     "Solely years at HQ"
+   ],
+   correct:0,
+   explanation:"Expatriate fit is judged by language skills, cultural empathy and international experience.  [oai_citation:38‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:43, q:"Which of the following best describes 'operational risk' in international business context?",
+   choices:[
+     "Risks of global macroeconomic collapse only",
+     "Risks related to daily operations such as supply chain disruptions, compliance lapses, and managerial failures",
+     "Only currency appreciation risks",
+     "A non-business term"
+   ],
+   correct:1,
+   explanation:"Operational risk covers supply chain, compliance and managerial problems affecting operations.  [oai_citation:39‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:44, q:"What is the effect of discriminatory local content requirements on foreign firms?",
+   choices:[
+     "Forces foreign firms to partner or localize, raising costs or changing strategy",
+     "Has no effect",
+     "Always benefits foreign firms",
+     "Is irrelevant to market entry"
+   ],
+   correct:0,
+   explanation:"Local content rules can force localization or partnerships and alter cost structures.  [oai_citation:40‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  },
+
+  {id:45, q:"Which of these is a common feature of modern dispute settlement under the WTO?",
+   choices:[
+     "Panels of trade experts, binding recommendations and timelines for compliance",
+     "No formal rules",
+     "Only informal chats between ministers",
+     "Automatic imposition of military sanctions"
+   ],
+   correct:0,
+   explanation:"WTO dispute settlement uses expert panels, issues binding recommendations and sets compliance timetables.  [oai_citation:41‡INTERNATIONAL-MANAGEMENT.pdf](sediment://file_000000007f1862469a281822df4e9fd9)"
+  }
+]; // end bank
+
+/* ============================
+   App parameters
+   ============================ */
+const QUESTIONS_PER_EXAM = 15;
+const POINTS_PER_Q = 2;
+const MAX_SCORE = QUESTIONS_PER_EXAM * POINTS_PER_Q;
+const PASSING_SCORE = 18; // as requested (out of 30)
+let timerSeconds = 30 * 60; // 30 minutes
+
+/* runtime state */
+let selectedQuestions = []; // will hold the 15 chosen question objects (with shuffled choices)
+let currentIndex = 0;
+let scorePoints = 0;
+let answeredCount = 0;
+
+const app = document.getElementById('quiz-area');
+const timerEl = document.getElementById('timer');
+const progressEl = document.getElementById('progress');
+
+/* Timer */
+function formatTime(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return `${mm}:${ss}`; }
+let timerInterval = setInterval(()=>{
+  timerSeconds--;
+  if(timerSeconds < 0){
+    clearInterval(timerInterval);
+    finishExam(true);
+    return;
+  }
+  timerEl.textContent = formatTime(timerSeconds);
+},1000);
+
+/* Prevent back navigation */
+function preventBack(){
+  history.replaceState(null, '', location.href);
+  window.addEventListener('popstate', ()=>{ history.replaceState(null, '', location.href); });
+}
+preventBack();
+
+/* Utility: shuffle array (Fisher-Yates) */
+function shuffle(array){
+  const a = array.slice();
+  for(let i = a.length -1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* Prepare exam: select QUESTIONS_PER_EXAM random questions and shuffle their choices */
+function prepareExam(){
+  // pick a shuffled bank, then take first N
+  const bankShuffled = shuffle(QUESTION_BANK);
+  const picked = bankShuffled.slice(0, QUESTIONS_PER_EXAM).map(q=>{
+    // build a copy with shuffled choices while keeping track of correct index
+    const choices = q.choices.map((c, idx)=>({text:c, origIndex:idx}));
+    const shuffledChoices = shuffle(choices);
+    const newCorrect = shuffledChoices.findIndex(c => c.origIndex === q.correct);
+    return {
+      id: q.id,
+      q: q.q,
+      choices: shuffledChoices.map(c=>c.text),
+      correct: newCorrect,
+      explanation: q.explanation
+    };
+  });
+  selectedQuestions = picked;
+}
+
+/* Render current question */
+function renderQuestion(){
+  const total = selectedQuestions.length;
+  progressEl.textContent = `Question ${currentIndex+1} / ${total}`;
+  const item = selectedQuestions[currentIndex];
+  app.innerHTML = `
+    <section class="question-card" aria-labelledby="q${currentIndex}">
+      <div class="qtext" id="q${currentIndex}">${escapeHtml(item.q)}</div>
+      <ul class="choices" id="choices">
+        ${item.choices.map((c,i)=>`<li class="choice"><button type="button" data-i="${i}" onclick="selectChoice(event)">${escapeHtml(c)}</button></li>`).join('')}
+      </ul>
+      <div class="controls">
+        <button class="btn secondary" id="submitBtn" disabled onclick="submitAnswer()">Submit Answer</button>
+        <div class="small" id="status">Each question: ${POINTS_PER_Q} points</div>
+      </div>
+      <div id="explainArea"></div>
+    </section>
+  `;
+  history.replaceState(null, '', location.href);
+}
+
+/* Selection handler */
+function selectChoice(e){
+  const btn = e.currentTarget;
+  document.querySelectorAll('.choice button').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('submitBtn').disabled = false;
+}
+
+/* Submit handler */
+function submitAnswer(){
+  const item = selectedQuestions[currentIndex];
+  const sel = document.querySelector('.choice button.selected');
+  if(!sel) return;
+  const chosen = Number(sel.getAttribute('data-i'));
+  const correct = item.correct;
+  const explainArea = document.getElementById('explainArea');
+  // disable buttons
+  document.querySelectorAll('.choice button').forEach(b=>b.disabled = true);
+  // mark chosen
+  if(chosen === correct){
+    sel.style.borderColor = '#14684a';
+    sel.style.background = '#eef7f1';
+    scorePoints += POINTS_PER_Q;
+  } else {
+    sel.style.borderColor = '#a6212a';
+    sel.style.background = '#fff0f0';
+    const correctBtn = document.querySelector(`.choice button[data-i="${correct}"]`);
+    if(correctBtn){ correctBtn.style.borderColor = '#14684a'; correctBtn.style.background = '#eef7f1'; }
+  }
+  answeredCount++;
+  explainArea.innerHTML = `
+    <div class="explanation" role="region" aria-live="polite">
+      <div><strong>Correct answer:</strong> ${escapeHtml(item.choices[correct])}</div>
+      <div style="margin-top:8px">${escapeHtml(item.explanation)}</div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn" id="nextBtn" onclick="nextQuestion()">Next</button>
+      <span class="small" style="margin-left:12px">Score: ${scorePoints} / ${MAX_SCORE}</span>
+    </div>
+  `;
+  history.replaceState({answered:true, q:currentIndex}, '', location.href);
+}
+
+/* Next question */
+function nextQuestion(){
+  currentIndex++;
+  if(currentIndex >= selectedQuestions.length){
+    finishExam(false);
+  } else {
+    renderQuestion();
+    preventBack();
+  }
+}
+
+/* Finish exam */
+function finishExam(timeExpired){
+  clearInterval(timerInterval);
+  app.innerHTML = `
+    <div class="result" role="status">
+      <div class="small">Exam finished ${timeExpired? '(time expired)' : ''}</div>
+      <div style="margin-top:12px">Your final score: <span class="score">${scorePoints} / ${MAX_SCORE}</span></div>
+      <div style="margin-top:8px">Result: <span class="${scorePoints >= PASSING_SCORE ? 'pass' : 'fail'}">${scorePoints >= PASSING_SCORE ? 'PASS' : 'FAIL'}</span></div>
+      <div style="margin-top:12px" class="small">Passing score: ${PASSING_SCORE} / ${MAX_SCORE}.</div>
+      <div style="margin-top:14px" class="small">To practice again, refresh the page to get a new random selection and choice ordering.</div>
+    </div>
+  `;
+  history.replaceState({finished:true}, '', location.href);
+}
+
+/* Utilities */
+function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+/* Start exam */
+prepareExam();
+renderQuestion();
+
+/* accessibility: keyboard shortcuts */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    const sel = document.querySelector('.choice button.selected');
+    if(sel && !document.getElementById('submitBtn').disabled){
+      submitAnswer();
+    }
+  } else if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    const buttons = Array.from(document.querySelectorAll('.choice button'));
+    if(buttons.length === 0) return;
+    let idx = buttons.findIndex(b=>b.classList.contains('selected'));
+    if(idx === -1) idx = 0;
+    else {
+      if(e.key === 'ArrowDown') idx = Math.min(buttons.length-1, idx+1);
+      else idx = Math.max(0, idx-1);
+    }
+    buttons.forEach(b=>b.classList.remove('selected'));
+    buttons[idx].classList.add('selected');
+    document.getElementById('submitBtn').disabled = false;
+    buttons[idx].focus();
+  }
+});
+</script>
+</body>
+</html>
