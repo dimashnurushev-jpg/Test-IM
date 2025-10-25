@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>International Management — 100+ Bank Timed Exam</title>
+<style>
+  :root{--bg:#f5f7fb;--card:#fff;--muted:#5b6770;--accent:#0b3d91;--ok:#14684a;--bad:#a6212a}
+  body{margin:0;font-family:Georgia, "Times New Roman", serif;background:var(--bg);color:#0b1220}
+  .container{max-width:980px;margin:28px auto;padding:24px;background:var(--card);border-radius:10px;box-shadow:0 8px 30px rgba(12,20,40,.06)}
+  header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  h1{margin:0;font-size:20px}
+  .meta{color:var(--muted);font-size:13px}
+  .topbar{display:flex;gap:12px;align-items:center}
+  .timer{font-weight:700;color:var(--accent);background:#eef4ff;padding:8px 12px;border-radius:8px;border:1px solid rgba(11,61,145,.06)}
+  .progress{color:var(--muted);font-size:13px}
+  .question-card{margin-top:18px;padding:18px;border-radius:8px;border:1px solid #e6e9ef;background:#fcfdff}
+  .qtext{font-weight:600;margin-bottom:12px;font-size:16px}
+  .choices{list-style:none;padding:0;margin:0}
+  .choice{margin:8px 0}
+  .choice button{width:100%;text-align:left;padding:12px 14px;border-radius:6px;border:1px solid #e6e9ef;background:#fff;cursor:pointer;font-size:15px}
+  .choice button:hover{transform:translateY(-1px)}
+  .choice button.selected{background:#f0f6ff;border-color:var(--accent)}
+  .controls{display:flex;gap:10px;align-items:center;margin-top:14px}
+  .btn{padding:10px 14px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-weight:600}
+  .btn.secondary{background:#e9eefb;color:var(--accent);border:1px solid rgba(11,61,145,.08)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .explanation{margin-top:14px;padding:12px;background:#fbfcff;border-radius:6px;border-left:4px solid #e6eefc;color:#12325a}
+  .small{font-size:13px;color:var(--muted)}
+  .result{padding:18px;border-radius:8px;background:#f7fafc;border:1px solid #e8eef6}
+  .score{font-size:22px;font-weight:700;color:var(--accent)}
+  .pass{color:var(--ok);font-weight:700}
+  .fail{color:var(--bad);font-weight:700}
+  footer{margin-top:18px;color:var(--muted);font-size:13px}
+  @media (max-width:700px){header{flex-direction:column;align-items:flex-start}.topbar{flex-direction:row;gap:10px}}
+</style>
+</head>
+<body>
+  <div class="container" id="app">
+    <header>
+      <div>
+        <h1>International Management — Timed Exam (100+ Bank)</h1>
+        <div class="meta">Source: provided PDF. 15 random questions per exam × 2 points each = 30 points. Passing = 18/30.</div>
+      </div>
+      <div class="topbar">
+        <div class="progress" id="progress">Question 1 / 15</div>
+        <div class="timer" id="timer">30:00</div>
+      </div>
+    </header>
+
+    <main id="quiz-area" aria-live="polite">
+      <!-- rendered content -->
+    </main>
+
+    <footer>
+      <div class="small">No back navigation. Immediate feedback after each question. Use the Restart Test button at the end to take another randomized exam.</div>
+    </footer>
+  </div>
+
+<script>
+/* ========== QUESTION BANK (100 items) - short answers only ========== */
+/* Each object: {id, q, choices[], correct} where 'correct' is index into choices[] */
+const QUESTION_BANK = [
+  {id:1, q:"Which term best describes business activities across national borders?", choices:["Domestic business","International business","Local trade","Internal finance"], correct:1},
+  {id:2, q:"Which organization replaced GATT in 1995?", choices:["IMF","WTO","World Bank","OECD"], correct:1},
+  {id:3, q:"What is 'trade creation'?", choices:["Worse domestic production replaces better imports","More efficient member production replaces inefficient domestic production","Increase of tariffs","Export ban"], correct:1},
+  {id:4, q:"How many dimensions did Hofstede originally identify (commonly cited)?", choices:["3","4","5","7"], correct:2},
+  {id:5, q:"Perlmutter's term for 'home-country oriented' mindset is:", choices:["Polycentrism","Ethnocentrism","Geocentrism","Regiocentrism"], correct:1},
+  {id:6, q:"FCPA allows an exception for which payments?", choices:["Political donations","Facilitating payments","Large bribes","Gifts to ministers"], correct:1},
+  {id:7, q:"Which motive seeks lower production costs abroad?", choices:["Market-seeking","Cost-reduction","Resource-seeking","Diversification"], correct:1},
+  {id:8, q:"A multidomestic strategy emphasizes:", choices:["Global standardization","Local adaptation","No foreign activity","Single global product"], correct:1},
+  {id:9, q:"Scale economies provide advantage by:", choices:["Lowering unit costs at higher volumes","Increasing taxes","Reducing quality","Limiting exports"], correct:0},
+  {id:10, q:"Trompenaars includes which dimension?", choices:["Universalism vs Particularism","GDP growth vs decline","Tariff vs quota","Hard vs soft law"], correct:0},
+  {id:11, q:"Geocentrism implies:", choices:["Home-country dominance","World-oriented integration","Host-country control only","No expatriates"], correct:1},
+  {id:12, q:"An element of culture is:", choices:["Language","GDP per capita","Annual rainfall","Exchange rate"], correct:0},
+  {id:13, q:"Viner's two trade effects are:", choices:["Trade creation & diversion","Tariff & subsidy","Debt & equity","Import & export"], correct:0},
+  {id:14, q:"First step in market entry planning is:", choices:["Build factory","Define objectives","Hire staff","Set prices"], correct:1},
+  {id:15, q:"Political micro-risk targets:", choices:["Entire economy","Specific firms","Only consumers","Global banks"], correct:1},
+  {id:16, q:"Trade diversion means:", choices:["Shift to less efficient partner due to preference","Better world supplier chosen","More exports","Lower tariffs"], correct:0},
+  {id:17, q:"A global standardization strategy emphasizes:", choices:["Local brands","Central control","No exports","Only services"], correct:1},
+  {id:18, q:"Cultural distance measures differences in:", choices:["Language and norms","Distance between capitals","Climate","Trade volume"], correct:0},
+  {id:19, q:"Scope economies relate to:", choices:["Range of products sharing resources","Only one product","Tax policies","Legal structures"], correct:0},
+  {id:20, q:"Common objectives for foreign entry include:", choices:["Market access and resource access","Only tax evasion","Avoiding laws","Closing HQ"], correct:0},
+  {id:21, q:"Headquarters can control subsidiaries via:", choices:["Performance monitoring and budgets","Random calls","No reporting","Festival gifts"], correct:0},
+  {id:22, q:"Liability of foreignness refers to:", choices:["Extra costs and disadvantages of foreign firms","Automatic advantage","Tax exemption","Local monopoly"], correct:0},
+  {id:23, q:"Lower control and lower risk entry modes include:", choices:["Exporting and licensing","Wholly owned subsidiary","Greenfield only","Mergers always"], correct:0},
+  {id:24, q:"Adaptation in marketing means:", choices:["Localizing products","Standardizing globally","Avoiding markets","Raising tariffs"], correct:0},
+  {id:25, q:"A global product division structure groups by:", choices:["Geography","Product lines worldwide","No structure","Only functions"], correct:1},
+  {id:26, q:"Uncertainty avoidance indicates:", choices:["Preference for rules and predictability","Love of ambiguity","No laws","Random management"], correct:0},
+  {id:27, q:"Infant industry protection often uses:", choices:["Tariffs and quotas","Open borders","Lower taxes","Currency union"], correct:0},
+  {id:28, q:"Strategic alliances often allow:", choices:["Sharing costs and local capabilities","Complete takeover","Sole ownership","No cooperation"], correct:0},
+  {id:29, q:"Culture affects negotiations by shaping:", choices:["Communication and trust","Only price","Only law","Only contracts"], correct:0},
+  {id:30, q:"High power distance means:", choices:["Acceptance of hierarchy","Egalitarianism","No managers","Same as low power distance"], correct:0},
+  {id:31, q:"To reduce political risk firms can:", choices:["Take insurance and partner locally","Ignore laws","Invest blindly","Close offices"], correct:0},
+  {id:32, q:"Economic integration is measured by:", choices:["Trade flows and regulatory alignment","Only GDP","Language similarity","Population density"], correct:0},
+  {id:33, q:"Choice greenfield vs acquisition depends on:", choices:["Speed, targets and control needs","Color of building","Time zone only","CEO mood"], correct:0},
+  {id:34, q:"Polycentrism favors:", choices:["Adaptation to host-country practices","Home-country dominance","Global standardization only","No foreign hires"], correct:0},
+  {id:35, q:"High uncertainty avoidance shows:", choices:["Formal procedures and rules","High tolerance for ambiguity","No regulations","Always rapid innovation"], correct:0},
+  {id:36, q:"A non-tariff barrier example:", choices:["Import quota","Simple tariff","Free trade area","Travel visa"], correct:0},
+  {id:37, q:"Scope economies give advantage via:", choices:["Shared capabilities across products","More managers","Higher tariffs","Lower quality"], correct:0},
+  {id:38, q:"Regiocentric orientation focuses on:", choices:["Regional market strategies","Only home country","No planning","Global standardization"], correct:0},
+  {id:39, q:"Standardizing globally tends to:", choices:["Reduce unit costs and strengthen brand","Eliminate all local tastes","Guarantee success","Remove marketing"], correct:0},
+  {id:40, q:"High-context cultures negotiate using:", choices:["Indirect communication and relationships","Only written contracts","Only numbers","No communication"], correct:0},
+  {id:41, q:"When laws differ, firms should:", choices:["Adopt strictest compliance programs","Ignore everything","Bribe officials","Withdraw immediately"], correct:0},
+  {id:42, q:"Expatriate suitability often includes:", choices:["Language skill and cultural empathy","Only age","Only salary","Only local degree"], correct:0},
+  {id:43, q:"Operational risk includes:", choices:["Supply chain disruptions and compliance lapses","Only currency risk","Only political coups","None"], correct:0},
+  {id:44, q:"Local content requirements force firms to:", choices:["Localize production or partner","Avoid local purchases","Export more","Close offices"], correct:0},
+  {id:45, q:"WTO dispute settlement uses:", choices:["Panels of trade experts","Only informal talks","Domestic courts","Military action"], correct:0},
+  {id:46, q:"Which is a cost of being foreign in a market?", choices:["Liability of foreignness","Home advantage","Local subsidy","Trade surplus"], correct:0},
+  {id:47, q:"A firm's 'market-seeking' motive aims to:", choices:["Access customers and increase sales","Lower wages only","Avoid taxes","Evade laws"], correct:0},
+  {id:48, q:"Which is an element of Hofstede's model?", choices:["Masculinity vs Femininity","Trade policy","Legal system","Climate"], correct:0},
+  {id:49, q:"Tight regulatory alignment is typical of:", choices:["High economic integration","Complete isolation","Only tariffs","No trade"], correct:0},
+  {id:50, q:"Which is an advantage of alliances?", choices:["Access to local distribution and shared costs","Full control guaranteed","No need for contracts","Tax-free profits"], correct:0},
+  {id:51, q:"What is 'trade diversion'?", choices:["Shifting purchases to less-efficient member suppliers","Choosing best world suppliers","Lowering tariffs broadly","Currency union"], correct:0},
+  {id:52, q:"Which staffing policy gives autonomy to host-country managers?", choices:["Polycentric","Ethnocentric","Geocentric","Global-centric"], correct:0},
+  {id:53, q:"Which staffing policy uses mainly home-country managers?", choices:["Ethnocentric","Polycentric","Geocentric","Regiocentric"], correct:0},
+  {id:54, q:"Which is a typical MNE motive to acquire foreign firms?", choices:["Gain local assets and market access","Avoid all competition","Reduce product quality","Increase tariffs"], correct:0},
+  {id:55, q:"Which instrument can protect consumers but act as a trade barrier?", choices:["Technical standards","Free trade agreement","Open market policy","Currency peg"], correct:0},
+  {id:56, q:"Which is a reason to standardize marketing globally?", choices:["Consistent brand image and lower costs","Ignore local laws","Avoid research","Guarantee profits"], correct:0},
+  {id:57, q:"Which is part of corporate governance over subsidiaries?", choices:["Budgets and reporting","No oversight","Only festivals","Random calls"], correct:0},
+  {id:58, q:"Which concept covers cross-border flows of people, goods, capital and ideas?", choices:["Globalization","Insulation","Localism","Autarky"], correct:0},
+  {id:59, q:"Which strategy emphasizes local responsiveness over efficiency?", choices:["Multidomestic","Global standardization","Export-only","Integration-only"], correct:0},
+  {id:60, q:"Which is a primary source of competitive advantage for MNEs?", choices:["Scale and scope economies","Only tariffs","Only local law","Only subsidies"], correct:0},
+  {id:61, q:"Which is a typical nonmarket strategy?", choices:["Lobbying and government relations","Product design only","Factory layout","Sole supplier choice"], correct:0},
+  {id:62, q:"Which is an effect of currency instability on MNEs?", choices:["Higher transaction risk","Guaranteed profits","No change","Free trade"], correct:0},
+  {id:63, q:"Which is major when assessing country risk?", choices:["Political stability and regulatory framework","Distance to HQ","Number of airports","Local cuisine"], correct:0},
+  {id:64, q:"Which is central to strategic asset-seeking FDI?", choices:["Acquiring technology, brands or skills","Avoiding taxes","Only exporting","Only licensing"], correct:0},
+  {id:65, q:"Which describes 'horizontal FDI'?", choices:["Replication of production in multiple countries","Only export","Only licensing","No production"], correct:0},
+  {id:66, q:"Which describes 'vertical FDI'?", choices:["Investment in different stages of value chain abroad","Only market sales","Only branding","Tax evasion"], correct:0},
+  {id:67, q:"Which is a typical export-entry disadvantage?", choices:["Lower control over marketing in market country","Higher tariffs at origin","Unlimited liability","No buyers"], correct:0},
+  {id:68, q:"Which is an example of political risk mitigation?", choices:["Joint venture with local partner","Ignore regulations","No contracts","Bribe officials"], correct:0},
+  {id:69, q:"Which approach emphasizes learning and knowledge transfer between units?", choices:["Transnational strategy","Isolationist strategy","Domestic-only","Autarkic"], correct:0},
+  {id:70, q:"Which factor favors entry via acquisition rather than greenfield?", choices:["Speed and access to established assets","Lower control always","Better tax evasion","No due diligence"], correct:0},
+  {id:71, q:"Which is a common incentive host governments offer to attract FDI?", choices:["Tax breaks and subsidies","Higher tariffs","Export bans","Military protection"], correct:0},
+  {id:72, q:"Which is a common corporate response to ethical dilemmas abroad?", choices:["Global compliance programs","Do nothing","Bribe to comply","Local-only standards"], correct:0},
+  {id:73, q:"Which of these lowers the liability of foreignness?", choices:["Local partnerships and adaptation","Remote management","No local hires","Ignoring culture"], correct:0},
+  {id:74, q:"Which is NOT a typical element of culture?", choices:["Tariff level","Language","Religion","Non-verbal cues"], correct:0},
+  {id:75, q:"Which is an example of a non-equity entry mode?", choices:["Exporting and licensing","Wholly-owned subsidiary","Greenfield investment","Acquisition"], correct:0},
+  {id:76, q:"Which is a benefit of centralizing R&D in one location?", choices:["Scale in research resources","Ignoring local markets","Faster customs","Lower shipping costs"], correct:0},
+  {id:77, q:"Which is an argument for localization of product features?", choices:["Cultural preferences and legal requirements","Saving on transport only","Avoiding taxes","Ignoring customers"], correct:0},
+  {id:78, q:"Which policy would a firm with ethnocentric orientation favor?", choices:["Standardize and centralize","Decentralize fully","Adapt to each market","Hire host-country nationals only"], correct:0},
+  {id:79, q:"Which is an indicator of integration in a regional bloc?", choices:["Common external tariff and reduced internal tariffs","Different external tariffs","Closed borders","No cooperation"], correct:0},
+  {id:80, q:"Which is a sign of strong institutional environment?", choices:["Clear rules, contract enforcement, low corruption","No courts","High corruption only","Closed markets"], correct:0},
+  {id:81, q:"Which is true about facilitating payments?", choices:["They speed routine government actions and are an FCPA exception","They are large bribes to win contracts","They are banned everywhere","They refer to loans"], correct:0},
+  {id:82, q:"Which is a reason firms fear expropriation?", choices:["Loss of assets by host government","Better market access","Tax incentives","Local partnership"], correct:0},
+  {id:83, q:"Which measurement captures country cultural values?", choices:["Hofstede scores","Number of ports","Annual rainfall","Trade balance"], correct:0},
+  {id:84, q:"Which is important when evaluating a joint venture partner?", choices:["Reputation and complementary capabilities","Number of employees","Headquarter color","CEO nationality"], correct:0},
+  {id:85, q:"Which is a common challenge in international HRM?", choices:["Managing expatriates and cross-cultural training","Only payroll frequency","Office furniture","Local dishes"], correct:0},
+  {id:86, q:"Which is a likely effect of tariff removal in a customs union?", choices:["Trade creation and possible trade diversion","Automatic higher prices","Complete collapse","No effect"], correct:0},
+  {id:87, q:"Which factor increases the appeal of licensing?", choices:["Low need for control and lower capital costs","Need to protect core technology","High desire for control","Immediate scale"], correct:0},
+  {id:88, q:"Which is an operational control used by HQ?", choices:["Standard procedures, reporting and KPIs","Random guesses","No metrics","Only visits"], correct:0},
+  {id:89, q:"Which is an example of strategic asset-seeking behavior?", choices:["Acquiring a local brand to access capabilities","Only exporting","Only hiring locals","No investment"], correct:0},
+  {id:90, q:"Which is a determinant of location choice for FDI?", choices:["Costs, market potential and institutional factors","Only climate","Only language","Only culture"], correct:0},
+  {id:91, q:"Which is a common export promotion policy by governments?", choices:["Subsidies and trade missions","Import bans","Only quotas","No policy"], correct:0},
+  {id:92, q:"Which is typical for a transnational firm?", choices:["Combines global efficiency with local responsiveness and knowledge transfer","Only local focus","Only global scale","No strategy"], correct:0},
+  {id:93, q:"Which is a risk of rapid international expansion?", choices:["Overextension and managerial complexity","Immediate profitability guaranteed","No competition","Lower costs always"], correct:0},
+  {id:94, q:"Which is the primary role of WTO rules?", choices:["Provide predictable rules for trade and resolve disputes","Set interest rates","Control migration","Run national courts"], correct:0},
+  {id:95, q:"Which is an example of a procedural non-tariff barrier?", choices:["Burdensome licensing and customs procedures","Lower taxes","Free trade zone","Currency union"], correct:0},
+  {id:96, q:"Which approach helps manage cultural differences in teams?", choices:["Cross-cultural training and local mentoring","Ignore differences","Same approach as HQ","Only punish mistakes"], correct:0},
+  {id:97, q:"Which is a core reason for MNEs to centralize decision-making?", choices:["Consistency and control across units","Avoid local insights","Increase shipping costs","Avoid learning"], correct:0},
+  {id:98, q:"Which factor often influences pricing in foreign markets?", choices:["Local purchasing power and competition","Only home-country price","Only CEO preference","No factor"], correct:0},
+  {id:99, q:"Which is a key element of international marketing adaptation?", choices:["Language and cultural adjustments","Ignore consumer preferences","Same packaging everywhere","No research"], correct:0},
+  {id:100, q:"Which is a common supply-chain challenge internationally?", choices:["Lead times, customs and coordination across borders","No challenges","Only domestic trucking","Unlimited capacity"], correct:0}
+]; // end QUESTION_BANK
+
+/* ========== PARAMETERS & STATE ========== */
+const QUESTIONS_PER_EXAM = 15;
+const POINTS_PER_Q = 2;
+const MAX_SCORE = QUESTIONS_PER_EXAM * POINTS_PER_Q;
+const PASSING_SCORE = 18; // out of 30 as requested
+let timerSeconds = 30 * 60; // 30 minutes
+
+let selectedQuestions = []; // prepared exam questions with shuffled choices
+let currentIndex = 0;
+let scorePoints = 0;
+let answeredCount = 0;
+let timerInterval = null;
+
+const app = document.getElementById('quiz-area');
+const timerEl = document.getElementById('timer');
+const progressEl = document.getElementById('progress');
+
+/* ========== Utilities ========== */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function formatTime(s){
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  return `${mm}:${ss}`;
+}
+function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+/* ========== Timer ========== */
+function startTimer(){
+  // clear previous if any
+  if(timerInterval) clearInterval(timerInterval);
+  timerSeconds = 30 * 60;
+  timerEl.textContent = formatTime(timerSeconds);
+  timerInterval = setInterval(()=>{
+    timerSeconds--;
+    if(timerSeconds < 0){
+      clearInterval(timerInterval);
+      finishExam(true);
+      return;
+    }
+    timerEl.textContent = formatTime(timerSeconds);
+  },1000);
+}
+
+/* ========== Prevent back navigation ========== */
+function preventBack(){
+  history.replaceState(null, '', location.href);
+  window.addEventListener('popstate', ()=>{ history.replaceState(null, '', location.href); });
+}
+
+/* ========== Prepare exam ========== */
+function prepareExam(){
+  // reset state
+  currentIndex = 0;
+  scorePoints = 0;
+  answeredCount = 0;
+  selectedQuestions = [];
+
+  // pick random unique questions
+  const bankShuffled = shuffle(QUESTION_BANK);
+  const pick = bankShuffled.slice(0, QUESTIONS_PER_EXAM);
+
+  // for each, shuffle choices and compute new correct index
+  selectedQuestions = pick.map(q=>{
+    const choices = q.choices.map((c, idx)=>({text:c, orig:idx}));
+    const shuffled = shuffle(choices);
+    const newCorrect = shuffled.findIndex(c=>c.orig === q.correct);
+    return {
+      id: q.id,
+      q: q.q,
+      choices: shuffled.map(c=>c.text),
+      correct: newCorrect
+    };
+  });
+
+  // start timer & render first question
+  startTimer();
+  renderQuestion();
+  preventBack();
+}
+
+/* ========== Render question ========== */
+function renderQuestion(){
+  const total = selectedQuestions.length;
+  progressEl.textContent = `Question ${currentIndex+1} / ${total}`;
+  const item = selectedQuestions[currentIndex];
+  app.innerHTML = `
+    <section class="question-card" aria-labelledby="q${currentIndex}">
+      <div class="qtext" id="q${currentIndex}">${escapeHtml(item.q)}</div>
+      <ul class="choices" id="choices">
+        ${item.choices.map((c,i)=>`<li class="choice"><button type="button" data-i="${i}" onclick="selectChoice(event)">${escapeHtml(c)}</button></li>`).join('')}
+      </ul>
+      <div class="controls">
+        <button class="btn secondary" id="submitBtn" disabled onclick="submitAnswer()">Submit Answer</button>
+        <div class="small" id="status">Each question: ${POINTS_PER_Q} points</div>
+      </div>
+      <div id="explainArea"></div>
+    </section>
+  `;
+  history.replaceState(null, '', location.href);
+}
+
+/* ========== Selection & submit ========== */
+function selectChoice(e){
+  const btn = e.currentTarget;
+  document.querySelectorAll('.choice button').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('submitBtn').disabled = false;
+}
+
+function submitAnswer(){
+  const item = selectedQuestions[currentIndex];
+  const sel = document.querySelector('.choice button.selected');
+  if(!sel) return;
+  const chosen = Number(sel.getAttribute('data-i'));
+  const correct = item.correct;
+  const explainArea = document.getElementById('explainArea');
+
+  // disable choices
+  document.querySelectorAll('.choice button').forEach(b=>b.disabled = true);
+
+  if(chosen === correct){
+    sel.style.borderColor = '#14684a';
+    sel.style.background = '#eef7f1';
+    scorePoints += POINTS_PER_Q;
+  } else {
+    sel.style.borderColor = '#a6212a';
+    sel.style.background = '#fff0f0';
+    const correctBtn = document.querySelector(`.choice button[data-i="${correct}"]`);
+    if(correctBtn){ correctBtn.style.borderColor = '#14684a'; correctBtn.style.background = '#eef7f1'; }
+  }
+  answeredCount++;
+
+  explainArea.innerHTML = `
+    <div class="explanation" role="region" aria-live="polite">
+      <div><strong>Correct answer:</strong> ${escapeHtml(item.choices[correct])}</div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn" id="nextBtn" onclick="nextQuestion()">Next</button>
+      <span class="small" style="margin-left:12px">Score: ${scorePoints} / ${MAX_SCORE}</span>
+    </div>
+  `;
+
+  history.replaceState({answered:true, q:currentIndex}, '', location.href);
+}
+
+/* ========== Next question ========== */
+function nextQuestion(){
+  currentIndex++;
+  if(currentIndex >= selectedQuestions.length){
+    finishExam(false);
+  } else {
+    renderQuestion();
+    preventBack();
+  }
+}
+
+/* ========== Finish exam ========== */
+function finishExam(timeExpired){
+  clearInterval(timerInterval);
+  app.innerHTML = `
+    <div class="result" role="status">
+      <div class="small">Exam finished ${timeExpired? '(time expired)' : ''}</div>
+      <div style="margin-top:12px">Your final score: <span class="score">${scorePoints} / ${MAX_SCORE}</span></div>
+      <div style="margin-top:8px">Result: <span class="${scorePoints >= PASSING_SCORE ? 'pass' : 'fail'}">${scorePoints >= PASSING_SCORE ? 'PASS' : 'FAIL'}</span></div>
+      <div style="margin-top:12px" class="small">Passing score: ${PASSING_SCORE} / ${MAX_SCORE}.</div>
+      <div style="margin-top:14px">
+        <button class="btn" onclick="restartExam()">Restart Test</button>
+        <button class="btn secondary" style="margin-left:8px" onclick="downloadScore()">Download Score (CSV)</button>
+      </div>
+    </div>
+  `;
+  history.replaceState({finished:true}, '', location.href);
+}
+
+/* ========== Restart (no page reload) ========== */
+function restartExam(){
+  prepareExam();
+}
+
+/* ========== Optional: Download score as CSV ========== */
+function downloadScore(){
+  const rows = [
+    ["Score", `${scorePoints}`],
+    ["MaxScore", `${MAX_SCORE}`],
+    ["PassingScore", `${PASSING_SCORE}`],
+    ["Date", new Date().toISOString()]
+  ];
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replaceAll('"','""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quiz_score.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ========== Accessibility shortcuts ========== */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    const sel = document.querySelector('.choice button.selected');
+    if(sel && !document.getElementById('submitBtn').disabled){
+      submitAnswer();
+    }
+  } else if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    const buttons = Array.from(document.querySelectorAll('.choice button'));
+    if(buttons.length === 0) return;
+    let idx = buttons.findIndex(b=>b.classList.contains('selected'));
+    if(idx === -1) idx = 0;
+    else {
+      if(e.key === 'ArrowDown') idx = Math.min(buttons.length-1, idx+1);
+      else idx = Math.max(0, idx-1);
+    }
+    buttons.forEach(b=>b.classList.remove('selected'));
+    buttons[idx].classList.add('selected');
+    const submitBtn = document.getElementById('submitBtn');
+    if(submitBtn) submitBtn.disabled = false;
+    buttons[idx].focus();
+  }
+});
+
+/* ========== Start ========== */
+prepareExam();
+</script>
+</body>
+</html>
